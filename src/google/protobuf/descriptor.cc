@@ -4717,9 +4717,14 @@ void DescriptorBuilder::CheckEnumValueUniqueness(
       if (result->file()->syntax() == FileDescriptor::SYNTAX_PROTO2) {
         AddWarning(value->full_name(), proto.value(i),
                    DescriptorPool::ErrorCollector::NAME, error_message);
+
+      // Fix for remerge openrtb.proto, always issue a warning
       } else {
-        AddError(value->full_name(), proto.value(i),
-                 DescriptorPool::ErrorCollector::NAME, error_message);
+        AddWarning(value->full_name(), proto.value(i),
+                   DescriptorPool::ErrorCollector::NAME, error_message);
+
+        // AddError(value->full_name(), proto.value(i),
+        //          DescriptorPool::ErrorCollector::NAME, error_message);
       }
     }
   }
