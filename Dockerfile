@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:latest as builder
 
 RUN apt-get update && apt-get install -y \
   autoconf \
@@ -26,3 +26,7 @@ RUN go get -u github.com/gogo/protobuf/protoc-gen-gogofaster
 
 VOLUME /src
 WORKDIR /src
+
+FROM alpine:latest as runner
+COPY --from=builder /go/bin/protoc-gen-gogofaster /bin/protoc-gen-gogofaster
+COPY --from=builder /usr/local/bin/protoc /bin/protoc
