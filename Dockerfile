@@ -1,8 +1,5 @@
 FROM golang:alpine as builder
 
-VOLUME /src
-WORKDIR /src
-
 COPY . /protobuf
 
 RUN apk add --update git build-base autoconf automake libtool
@@ -15,5 +12,8 @@ COPY --from=builder /usr/bin/protoc /usr/bin/protoc
 COPY --from=builder /usr/lib/libprotoc.so.11 /usr/lib/
 COPY --from=builder /usr/lib/libprotobuf.so.11 /usr/lib/
 RUN apk add --update libstdc++
+
+VOLUME /src
+WORKDIR /src
 
 ENTRYPOINT ["protoc"]
