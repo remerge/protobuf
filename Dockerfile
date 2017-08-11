@@ -1,32 +1,20 @@
-FROM ubuntu:latest as builder
-
-RUN apt-get update && apt-get install -y \
-  autoconf \
-  automake \
-  build-essential \
-  curl \
-  libtool \
-  unzip \
-&& rm -rf /var/lib/apt/lists/*
-
-COPY . /protobuf
-RUN cd protobuf && ./autogen.sh && ./configure && make && make check && make install && ldconfig && cd .. && rm -rf protobuf
-
-RUN apt-get update && apt-get install -y \
-  software-properties-common \
-  python-software-properties \
-&& add-apt-repository ppa:longsleep/golang-backports && apt-get update && apt-get install -y \
-  git \
-  golang-1.8-go \
-&& rm -rf /var/lib/apt/lists/* && ln -s /usr/lib/go-1.8/bin/go /usr/bin/go
-
-RUN mkdir /go
-ENV PATH="/go/bin:${PATH}" GOPATH="/go"
-RUN go get -u github.com/gogo/protobuf/protoc-gen-gogofaster
+FROM golang:alpine as builder
 
 VOLUME /src
 WORKDIR /src
 
+COPY . /protobuf
+COPY docker-build.sh /docker-build.sh
+RUN /docker-build.sh
+
+RUN apk add --update git
+RUN go get -u github.com/gogo/protobuf/protoc-gen-gogofaster
+
 FROM alpine:latest as runner
 COPY --from=builder /go/bin/protoc-gen-gogofaster /bin/protoc-gen-gogofaster
-COPY --from=builder /usr/local/bin/protoc /bin/protoc
+COPY --from=builder /usr/bin/protoc /usr/bin/protoc
+COPY --from=builder /usr/lib/libprotoc.so* /usr/lib/
+COPY --from=builder /usr/lib/libprotobuf.so* /usr/lib/
+RUN apk add --update libstdc++
+
+ENTRYPOINT ["protoc"]
