@@ -16,4 +16,4 @@ COPY --from=builder /usr/lib/libprotoc.so.11 /usr/lib/
 COPY --from=builder /usr/lib/libprotobuf.so.11 /usr/lib/
 RUN apk add --update libstdc++
 
-# ENTRYPOINT ["protoc"]
+ENTRYPOINT ["protoc"]
